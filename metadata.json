@@ -1,0 +1,5 @@
+{
+  "name": "Confirmación de Agendamiento",
+  "description": "Página de confirmación de citas con integración de píxel de seguimiento para eventos de conversión.",
+  "requestFramePermissions": []
+}
