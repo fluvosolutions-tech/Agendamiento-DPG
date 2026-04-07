@@ -30,7 +30,18 @@ export default function App() {
       confetti({ ...defaults, particleCount, origin: { x: randomInRange(0.7, 0.9), y: Math.random() - 0.2 } });
     }, 250);
 
-    return () => clearInterval(interval);
+    // 2. Disparar evento de respaldo tras 3 segundos
+    const timer = setTimeout(() => {
+      if (window.fbq) {
+        console.log('[React] Disparando evento Schedule de respaldo...');
+        window.fbq('track', 'Schedule', { content_name: 'Confirmación React' });
+      }
+    }, 3000);
+
+    return () => {
+      clearInterval(interval);
+      clearTimeout(timer);
+    };
   }, []);
 
   return (
