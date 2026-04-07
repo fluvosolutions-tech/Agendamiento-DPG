@@ -12,7 +12,6 @@ declare global {
 
 export default function App() {
   const [isLoaded, setIsLoaded] = useState(false);
-  const [pixelStatus, setPixelStatus] = useState<'waiting' | 'sent' | 'error'>('waiting');
 
   useEffect(() => {
     setIsLoaded(true);
@@ -31,39 +30,11 @@ export default function App() {
       confetti({ ...defaults, particleCount, origin: { x: randomInRange(0.7, 0.9), y: Math.random() - 0.2 } });
     }, 250);
 
-    // 2. Disparar Meta Pixel Event
-    const firePixelEvent = () => {
-      if (typeof window.fbq === 'function') {
-        console.log('[Meta Pixel] Disparando evento Schedule...');
-        window.fbq('track', 'Schedule', {
-          content_name: 'Agendamiento Confirmado',
-          currency: 'USD',
-          value: 0
-        });
-        setPixelStatus('sent');
-        return true;
-      }
-      return false;
-    };
-
-    // Intentar disparar inmediatamente
-    if (!firePixelEvent()) {
-      let attempts = 0;
-      const retryInterval = setInterval(() => {
-        attempts++;
-        if (firePixelEvent() || attempts >= 20) {
-          clearInterval(retryInterval);
-          if (attempts >= 20) setPixelStatus('error');
-        }
-      }, 500);
-    }
-
     return () => clearInterval(interval);
   }, []);
 
   return (
     <div className="min-h-screen bg-[#f8fafc] text-[#1e293b] font-sans flex items-center justify-center selection:bg-emerald-100 selection:text-emerald-900 relative">
-      
       <main className="max-w-3xl mx-auto px-6 py-12">
         <AnimatePresence>
           {isLoaded && (
@@ -93,27 +64,6 @@ export default function App() {
           )}
         </AnimatePresence>
       </main>
-
-      {/* PANEL DE DEPURACIÓN (Visualización del estado del Píxel) */}
-      <div className="fixed bottom-6 right-6 z-50">
-        <div className={`px-4 py-3 rounded-2xl shadow-2xl border text-xs font-bold flex flex-col gap-2 transition-all duration-500 ${
-          pixelStatus === 'sent' ? 'bg-emerald-900 border-emerald-500 text-emerald-100' : 
-          pixelStatus === 'error' ? 'bg-red-900 border-red-500 text-red-100' : 
-          'bg-slate-900 border-slate-700 text-slate-100'
-        }`}>
-          <div className="flex items-center gap-2">
-            <div className={`w-2 h-2 rounded-full animate-pulse ${
-              pixelStatus === 'sent' ? 'bg-emerald-400' : 
-              pixelStatus === 'error' ? 'bg-red-400' : 'bg-yellow-400'
-            }`} />
-            ESTADO DEL PÍXEL: {pixelStatus === 'sent' ? 'EVENTO ENVIADO' : pixelStatus === 'error' ? 'ERROR DE CARGA' : 'ESPERANDO...'}
-          </div>
-          <div className="opacity-60 text-[10px] font-mono">
-            ID: 1039040052894510<br/>
-            Evento: Schedule
-          </div>
-        </div>
-      </div>
     </div>
   );
 }
