@@ -18,13 +18,32 @@ interface PixelTrackerProps {
  */
 export default function PixelTracker({ eventName, data }: PixelTrackerProps) {
   useEffect(() => {
-    console.log(`[Pixel Tracker] Enviando evento a Meta: ${eventName}`, data);
+    const trackEvent = () => {
+      if (typeof window.fbq === 'function') {
+        console.log(`[Pixel Tracker] Enviando evento a Meta: ${eventName}`, data);
+        window.fbq('track', eventName, data);
+        return true;
+      }
+      return false;
+    };
 
-    // Llamada real al Meta Pixel
-    if (typeof window.fbq === 'function') {
-      window.fbq('track', eventName, data);
-    } else {
-      console.warn('[Pixel Tracker] Meta Pixel (fbq) no está inicializado.');
+    // Intentar disparar el evento inmediatamente
+    if (!trackEvent()) {
+      console.warn('[Pixel Tracker] Meta Pixel (fbq) no está listo. Reintentando...');
+      
+      // Reintentar cada 500ms hasta un máximo de 10 veces
+      let attempts = 0;
+      const interval = setInterval(() => {
+        attempts++;
+        if (trackEvent() || attempts >= 10) {
+          clearInterval(interval);
+          if (attempts >= 10 && typeof window.fbq !== 'function') {
+            console.error('[Pixel Tracker] No se pudo encontrar Meta Pixel después de varios intentos.');
+          }
+        }
+      }, 500);
+
+      return () => clearInterval(interval);
     }
 
     // Simulación de evento interno para demostración
